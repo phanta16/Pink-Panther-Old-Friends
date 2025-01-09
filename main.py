@@ -32,31 +32,6 @@ class Player(pygame.sprite.Sprite):
 class Item(pygame.sprite.Sprite):
     pass
 
-
-if __name__ == '__main__':
-    pygame.init()
-    pygame.display.set_caption('Pink Panther: Old Friend')
-    os.chdir(f'{os.getcwd()}\\assets')
-    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-    screen.fill('black')
-    pygame.display.update()
-    pygame.mixer.init()
-    clock = pygame.time.Clock()
-    intro_sprites = pygame.sprite.Group()
-
-
-def game():
-    pass
-
-
-def options():
-    pass
-
-
-def menu():
-    pass
-
-
 def intro(screen):
 
 
@@ -114,7 +89,7 @@ def intro(screen):
         logo = pygame.sprite.Sprite(intro_sprites)
         logo.image = pygame.image.load(os.path.join(assets_path, 'panther_logo.png')).convert_alpha()
         logo.rect = logo.image.get_rect()
-        logo.rect.x = 200
+        logo.rect.x = 270
         logo.rect.y = -10
 
         sleep(0.5)
@@ -130,12 +105,37 @@ def intro(screen):
         break
     return
 
+if __name__ == '__main__':
+    pygame.init()
+    pygame.display.set_caption('Pink Panther: Old Friend')
+    os.chdir(f'{os.getcwd()}\\assets')
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    screen.fill('black')
+    pygame.display.update()
+    pygame.mixer.init()
+    clock = pygame.time.Clock()
+    intro_sprites = pygame.sprite.Group()
+    menu_sprites = pygame.sprite.Group()
+    intro(screen)
+
+
+def game():
+    pass
+
+
+def options():
+    pass
+
+
+def menu():
+    pass
+
 
 while True:
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             exit()
-    intro(screen)
-    sleep(5)
-    exit()
+    sleep(2)
+    while True:
+        pass

@@ -2,39 +2,88 @@ from time import sleep
 
 import pygame
 import os
+from PIL import Image
 
-
-# class Sprites(pygame.sprite.Sprite):
-#     def __init__(self, name, height, width):
-#         super().__init__()
-#         self.image = pygame.image.load(os.path.join(os.getcwd(), name)).convert_alpha()
-#         self.image = pygame.transform.scale(self.image, (height, width))
-#         self.rect = self.image.get_rect()
-#         WIDTH, HEIGHT = self.image.get_size()
-#         self.rect.center = (WIDTH / 2, HEIGHT / 2)
-#
-#     def moveRight(self, pixels):
-#         self.rect.x += pixels
-#
-#     def moveLeft(self, pixels):
-#         self.rect.x -= pixels
-#
-#     def moveForward(self, pixels):
-#         self.rect.y += pixels
-#
-#     def moveBack(self, pixels):
-#         self.rect.y -= pixels
 
 class Player(pygame.sprite.Sprite):
+    def __init__(self, x, y, image_folder, frame_rate=10):
+        super().__init__()
+
+        self.frames = []
+        for filename in sorted(os.listdir(image_folder)):
+            if filename.endswith('.png'):
+                frame = pygame.image.load(os.path.join(image_folder, filename))
+                frame = pygame.transform.scale(frame, (500, 500))
+                self.frames.append(frame)
+
+        self.image = self.frames[0]
+        self.rect = self.image.get_rect()
+
+        self.current_frame = 0
+        self.frame_rate = frame_rate
+        self.clock = pygame.time.Clock()
+
+        self.rect.x = x
+        self.rect.y = y
+
+    def get_coords(self):
+        return self.rect.x, self.rect.y
+
+    def update(self):
+        self.current_frame = (self.current_frame + 1) % len(self.frames)
+        self.image = self.frames[self.current_frame]
+
+    def moveForward(self):
+        self.frames = [pygame.image.load(os.path.join(f'{os.curdir}/icons', file)) for file in
+                       os.listdir(f'{os.curdir}/icons') if 'forward' in file]
+        self.rect.y += 5
+
+    def moveBack(self):
+        self.frames = [pygame.image.load(os.path.join(f'{os.curdir}/icons', file)) for file in
+                       os.listdir(f'{os.curdir}/icons') if 'back' in file]
+        self.rect.y -= 5
+
+    def moveRight(self):
+        self.frames = [pygame.image.load(os.path.join(f'{os.curdir}/icons', file)) for file in
+                       os.listdir(f'{os.curdir}/icons') if 'right' in file]
+        self.rect.x += 5
+
+    def moveLeft(self):
+        self.frames = [pygame.image.load(os.path.join(f'{os.curdir}/icons', file)) for file in
+                       os.listdir(f'{os.curdir}/icons') if 'left' in file]
+        self.rect.x -= 5
+
+
+
+class Level:
     pass
 
 
 class Item(pygame.sprite.Sprite):
     pass
 
+
+# def sprite_separator():
+#     sheet = Image.open("assets/test_walk.png")
+#     count = 0
+#
+#     for x in range(4):
+#         for y in range(4):
+#             a = (x + 1) * 128
+#             b = (y + 1) * 128
+#             icon = sheet.crop((a - 128, b - 128, a, b))
+#             icon.save("assets/icons/{}.png".format(count))
+#             count += 1
+#
+# sprite_separator()
+
+def sprite_separator():
+    for v in os.listdir('assets/icons'):
+        image = Image.open(v)
+        new_image = image.resize((300, 300))
+        new_image.save("assets/icons/{}.png".format(v))
+
 def intro(screen):
-
-
     while True:
 
         current_path = os.path.dirname(__file__)
@@ -94,7 +143,7 @@ def intro(screen):
 
         sleep(0.5)
 
-        for _ in range(350):
+        for _ in range(400):
             logo.rect.y += 1
             intro_sprites.update()
             intro_sprites.draw(screen)
@@ -102,8 +151,29 @@ def intro(screen):
             clock.tick(60)
             screen.fill('BLACK')
 
-        break
-    return
+        sleep(5)
+        intro_sprites.empty()
+
+        sleep(1)
+
+        house_background = pygame.sprite.Sprite(intro_sprites)
+        house_background.image = pygame.image.load(os.path.join(assets_path, 'intro_house.png')).convert_alpha()
+        house_background.rect = house_background.image.get_rect()
+        house_background.rect.x = 0
+        house_background.rect.y = 0
+
+        cat = Player(300, 300, f'{os.curdir}/icons')
+        intro_sprites.add(cat)
+
+        while True:
+            while cat.get_coords()[1] != 600:
+                cat.moveForward()
+                intro_sprites.update()
+                intro_sprites.draw(screen)
+                pygame.display.flip()
+                clock.tick(5)
+                screen.fill('BLACK')
+
 
 if __name__ == '__main__':
     pygame.init()
@@ -123,10 +193,6 @@ def game():
     pass
 
 
-def options():
-    pass
-
-
 def menu():
     pass
 
@@ -136,6 +202,6 @@ while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             exit()
-    sleep(2)
+
     while True:
         pass

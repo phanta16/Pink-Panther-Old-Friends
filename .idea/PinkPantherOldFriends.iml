@@ -5,11 +5,4 @@
     <orderEntry type="jdk" jdkName="Python 3.13 (PinkPantherOldFriends)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
-  <component name="PyNamespacePackagesService">
-    <option name="namespacePackageFolders">
-      <list>
-        <option value="$MODULE_DIR$/.venv/assets" />
-      </list>
-    </option>
-  </component>
 </module>

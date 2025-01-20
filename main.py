@@ -4,6 +4,43 @@ import pygame
 import os
 from PIL import Image
 
+list_of_levels = {
+
+    'start_street'
+}
+
+current_path = os.path.dirname(__file__)
+assets_path = os.path.join(current_path, 'assets')
+
+class AnimatedSprite(pygame.sprite.Sprite):
+    def __init__(self, x, y, image_folder, frame_rate=10):
+        super().__init__()
+
+        self.frames = []
+        for filename in sorted(os.listdir(image_folder)):
+            if filename.endswith('.png'):
+                frame = pygame.image.load(os.path.join(image_folder, filename))
+                frame = pygame.transform.scale(frame, (500, 500))
+
+                self.frames.append(frame)
+
+        self.image = self.frames[0]
+        self.rect = self.image.get_rect()
+
+        self.current_frame = 0
+        self.frame_rate = frame_rate
+        self.clock = pygame.time.Clock()
+
+        self.rect.x = x
+        self.rect.y = y
+
+    def get_coords(self):
+        return self.rect.x, self.rect.y
+
+    def update(self):
+        self.current_frame = (self.current_frame + 1) % len(self.frames)
+        self.image = self.frames[self.current_frame]
+
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, x, y, image_folder, frame_rate=10):
@@ -14,6 +51,7 @@ class Player(pygame.sprite.Sprite):
             if filename.endswith('.png'):
                 frame = pygame.image.load(os.path.join(image_folder, filename))
                 frame = pygame.transform.scale(frame, (500, 500))
+
                 self.frames.append(frame)
 
         self.image = self.frames[0]
@@ -56,6 +94,13 @@ class Player(pygame.sprite.Sprite):
 
 
 class Level:
+    def __init__(self, image_path, transitions, list_of_sprites=None):
+        pass
+
+    def check_transitions(self):
+        pass
+
+def event_handler(level_name):
     pass
 
 
@@ -116,6 +161,8 @@ def intro(screen):
         panther_intro.image = pygame.transform.scale(
             pygame.image.load(os.path.join(assets_path, 'panther_intro.png')).convert_alpha(), (400, 400))
         panther_intro.rect = panther_intro.image.get_rect()
+
+
         panther_intro.rect.x = 1700
         panther_intro.rect.y = 690
 
@@ -138,7 +185,7 @@ def intro(screen):
         logo = pygame.sprite.Sprite(intro_sprites)
         logo.image = pygame.image.load(os.path.join(assets_path, 'panther_logo.png')).convert_alpha()
         logo.rect = logo.image.get_rect()
-        logo.rect.x = 270
+        logo.rect.x = 250
         logo.rect.y = -10
 
         sleep(0.5)
@@ -156,23 +203,12 @@ def intro(screen):
 
         sleep(1)
 
-        house_background = pygame.sprite.Sprite(intro_sprites)
-        house_background.image = pygame.image.load(os.path.join(assets_path, 'intro_house.png')).convert_alpha()
-        house_background.rect = house_background.image.get_rect()
-        house_background.rect.x = 0
-        house_background.rect.y = 0
+        break
+    return
 
-        cat = Player(300, 300, f'{os.curdir}/icons')
-        intro_sprites.add(cat)
 
-        while True:
-            while cat.get_coords()[1] != 600:
-                cat.moveForward()
-                intro_sprites.update()
-                intro_sprites.draw(screen)
-                pygame.display.flip()
-                clock.tick(5)
-                screen.fill('BLACK')
+def menu(screen):
+    pass
 
 
 if __name__ == '__main__':
@@ -187,15 +223,7 @@ if __name__ == '__main__':
     intro_sprites = pygame.sprite.Group()
     menu_sprites = pygame.sprite.Group()
     intro(screen)
-
-
-def game():
-    pass
-
-
-def menu():
-    pass
-
+    menu(screen)
 
 while True:
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)

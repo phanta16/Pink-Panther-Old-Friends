@@ -4,13 +4,23 @@ import pygame
 import os
 from PIL import Image
 
-list_of_levels = {
-
-    'start_street'
-}
+if __name__ == '__main__':
+    pygame.init()
+    pygame.display.set_caption('Pink Panther: Old Friend')
+    os.chdir(f'{os.getcwd()}\\assets')
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    screen.fill('black')
+    pygame.display.update()
+    pygame.mixer.init()
+    clock = pygame.time.Clock()
+    intro_sprites = pygame.sprite.Group()
+    menu_sprites = pygame.sprite.Group()
+    # intro(screen)
+    # menu(screen)
 
 current_path = os.path.dirname(__file__)
 assets_path = os.path.join(current_path, 'assets')
+
 
 class AnimatedSprite(pygame.sprite.Sprite):
     def __init__(self, x, y, image_folder, frame_rate=10):
@@ -91,17 +101,41 @@ class Player(pygame.sprite.Sprite):
                        os.listdir(f'{os.curdir}/icons') if 'left' in file]
         self.rect.x -= 5
 
+    def move(self, coordinates):
+        if coordinates[0] == self.rect.x and coordinates[1] == self.rect.y:
+            return
+        if coordinates[0] > self.rect.x:
+            self.moveRight()
+        elif coordinates[0] < self.rect.x:
+            self.moveLeft()
+        if coordinates[0] > self.rect.y:
+            self.moveForward()
+        elif coordinates[0] < self.rect.y:
+            self.moveBack()
+
+
+def transitor_manager(current_location):
+    if current_location == 'start_street_1':
+        pass
 
 
 class Level:
     def __init__(self, image_path, transitions, list_of_sprites=None):
-        pass
+        self.trigger_zone = pygame.Rect(transitions[0])
+
+        self.image = image_path
+
+        screen.blit(self.image, (0, -50))
 
     def check_transitions(self):
         pass
 
-def event_handler(level_name):
-    pass
+
+list_of_levels = {
+
+    'start_street_1': Level(pygame.image.load(os.path.join(assets_path, 'start_home.png')).convert_alpha(),
+                            ((500, 900, 100, 100),))
+}
 
 
 class Item(pygame.sprite.Sprite):
@@ -127,6 +161,7 @@ def sprite_separator():
         image = Image.open(v)
         new_image = image.resize((300, 300))
         new_image.save("assets/icons/{}.png".format(v))
+
 
 def intro(screen):
     while True:
@@ -161,7 +196,6 @@ def intro(screen):
         panther_intro.image = pygame.transform.scale(
             pygame.image.load(os.path.join(assets_path, 'panther_intro.png')).convert_alpha(), (400, 400))
         panther_intro.rect = panther_intro.image.get_rect()
-
 
         panther_intro.rect.x = 1700
         panther_intro.rect.y = 690
@@ -211,20 +245,6 @@ def menu(screen):
     pass
 
 
-if __name__ == '__main__':
-    pygame.init()
-    pygame.display.set_caption('Pink Panther: Old Friend')
-    os.chdir(f'{os.getcwd()}\\assets')
-    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-    screen.fill('black')
-    pygame.display.update()
-    pygame.mixer.init()
-    clock = pygame.time.Clock()
-    intro_sprites = pygame.sprite.Group()
-    menu_sprites = pygame.sprite.Group()
-    intro(screen)
-    menu(screen)
-
 while True:
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     for event in pygame.event.get():
@@ -232,4 +252,8 @@ while True:
             exit()
 
     while True:
-        pass
+        st = Level(pygame.image.load(os.path.join(assets_path, 'start_home.png')).convert_alpha(),
+                            ((500, 900, 100, 100),))
+        ply = Player(300, 300, os.path.join(f'{os.curdir}/icons'))
+        ply.update()
+        pygame.display.update()

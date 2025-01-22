@@ -14,7 +14,7 @@ if __name__ == '__main__':
     pygame.mixer.init()
     clock = pygame.time.Clock()
     intro_sprites = pygame.sprite.Group()
-    menu_sprites = pygame.sprite.Group()
+    all_sprites = pygame.sprite.Group()
     # intro(screen)
     # menu(screen)
 
@@ -60,7 +60,6 @@ class Player(pygame.sprite.Sprite):
         for filename in sorted(os.listdir(image_folder)):
             if filename.endswith('.png'):
                 frame = pygame.image.load(os.path.join(image_folder, filename))
-                frame = pygame.transform.scale(frame, (500, 500))
 
                 self.frames.append(frame)
 
@@ -101,17 +100,9 @@ class Player(pygame.sprite.Sprite):
                        os.listdir(f'{os.curdir}/icons') if 'left' in file]
         self.rect.x -= 5
 
-    def move(self, coordinates):
-        if coordinates[0] == self.rect.x and coordinates[1] == self.rect.y:
-            return
-        if coordinates[0] > self.rect.x:
-            self.moveRight()
-        elif coordinates[0] < self.rect.x:
-            self.moveLeft()
-        if coordinates[0] > self.rect.y:
-            self.moveForward()
-        elif coordinates[0] < self.rect.y:
-            self.moveBack()
+    def standStraight(self):
+        self.frames = [pygame.image.load(os.path.join(f'{os.curdir}/icons', file)) for file in
+                       os.listdir(f'{os.curdir}/icons') if 'stand' in file]
 
 
 def transitor_manager(current_location):
@@ -119,13 +110,15 @@ def transitor_manager(current_location):
         pass
 
 
-class Level:
+class Level(pygame.sprite.Sprite):
     def __init__(self, image_path, transitions, list_of_sprites=None):
         self.trigger_zone = pygame.Rect(transitions[0])
 
         self.image = image_path
 
         screen.blit(self.image, (0, -50))
+        self.rect = self.image.get_rect()
+        super().__init__()
 
     def check_transitions(self):
         pass
@@ -245,6 +238,12 @@ def menu(screen):
     pass
 
 
+st = Level(pygame.image.load(os.path.join(assets_path, 'start_home.png')).convert_alpha(),
+           ((500, 900, 100, 100),))
+ply = Player(300, 300, os.path.join(f'{os.curdir}/icons'))
+all_sprites.add(st)
+all_sprites.add(ply)
+
 while True:
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     for event in pygame.event.get():
@@ -252,8 +251,51 @@ while True:
             exit()
 
     while True:
-        st = Level(pygame.image.load(os.path.join(assets_path, 'start_home.png')).convert_alpha(),
-                            ((500, 900, 100, 100),))
-        ply = Player(300, 300, os.path.join(f'{os.curdir}/icons'))
-        ply.update()
-        pygame.display.update()
+
+        all_sprites.draw(screen)
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x1, y1 = pygame.mouse.get_pos()
+                x1 -= 70
+                y1 -= 90
+                x, y = ply.get_coords()
+                if x1 == x and y1 == y:
+                    ply.standStraight()
+                    all_sprites.update()
+                    all_sprites.draw(screen)
+                    pygame.display.flip()
+                    break
+                elif x1 > x:
+                    while x1 > x:
+                        x, y = ply.get_coords()
+                        ply.moveRight()
+                        all_sprites.update()
+                        all_sprites.draw(screen)
+                        pygame.display.flip()
+                        sleep(0.1)
+                elif x1 < x:
+                    while x1 < x:
+                        x, y = ply.get_coords()
+                        ply.moveLeft()
+                        all_sprites.update()
+                        all_sprites.draw(screen)
+                        pygame.display.flip()
+                        sleep(0.1)
+                if y1 > y:
+                    while y1 > y:
+                        x, y = ply.get_coords()
+                        ply.moveForward()
+                        all_sprites.update()
+                        all_sprites.draw(screen)
+                        pygame.display.flip()
+                        sleep(0.1)
+                elif y1 < y:
+                    while y1 < y:
+                        x, y = ply.get_coords()
+                        ply.moveBack()
+                        all_sprites.update()
+                        all_sprites.draw(screen)
+                        pygame.display.flip()
+                        sleep(0.1)

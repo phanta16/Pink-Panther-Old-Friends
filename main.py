@@ -76,6 +76,12 @@ class Player(pygame.sprite.Sprite):
     def get_coords(self):
         return self.rect.x, self.rect.y
 
+    def check_transitions(self):
+        pass
+
+    def check_collision(self):
+        pass
+
     def update(self):
         self.current_frame = (self.current_frame + 1) % len(self.frames)
         self.image = self.frames[self.current_frame]
@@ -111,7 +117,7 @@ def transitor_manager(current_location):
 
 
 class Level(pygame.sprite.Sprite):
-    def __init__(self, image_path, transitions, list_of_sprites=None):
+    def __init__(self, image_path, collision_map, transitions, sprite_group):
         self.trigger_zone = pygame.Rect(transitions[0])
 
         self.image = image_path
@@ -119,9 +125,6 @@ class Level(pygame.sprite.Sprite):
         screen.blit(self.image, (0, -50))
         self.rect = self.image.get_rect()
         super().__init__()
-
-    def check_transitions(self):
-        pass
 
 
 list_of_levels = {
@@ -257,6 +260,7 @@ while True:
 
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
+                ply.standStraight()
                 x1, y1 = pygame.mouse.get_pos()
                 x1 -= 70
                 y1 -= 90
@@ -274,7 +278,7 @@ while True:
                         all_sprites.update()
                         all_sprites.draw(screen)
                         pygame.display.flip()
-                        sleep(0.1)
+                        sleep(0.06)
                 elif x1 < x:
                     while x1 < x:
                         x, y = ply.get_coords()
@@ -282,7 +286,7 @@ while True:
                         all_sprites.update()
                         all_sprites.draw(screen)
                         pygame.display.flip()
-                        sleep(0.1)
+                        sleep(0.06)
                 if y1 > y:
                     while y1 > y:
                         x, y = ply.get_coords()
@@ -290,7 +294,7 @@ while True:
                         all_sprites.update()
                         all_sprites.draw(screen)
                         pygame.display.flip()
-                        sleep(0.1)
+                        sleep(0.06)
                 elif y1 < y:
                     while y1 < y:
                         x, y = ply.get_coords()
@@ -298,4 +302,4 @@ while True:
                         all_sprites.update()
                         all_sprites.draw(screen)
                         pygame.display.flip()
-                        sleep(0.1)
+                        sleep(0.06)

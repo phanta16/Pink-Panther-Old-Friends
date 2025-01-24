@@ -14,7 +14,7 @@ if __name__ == '__main__':
     pygame.mixer.init()
     clock = pygame.time.Clock()
     intro_sprites = pygame.sprite.Group()
-    all_sprites = pygame.sprite.Group()
+    first_scene_group = pygame.sprite.Group()
     # intro(screen)
     # menu(screen)
 
@@ -79,9 +79,6 @@ class Player(pygame.sprite.Sprite):
     def check_transitions(self):
         pass
 
-    def check_collision(self):
-        pass
-
     def update(self):
         self.current_frame = (self.current_frame + 1) % len(self.frames)
         self.image = self.frames[self.current_frame]
@@ -115,22 +112,27 @@ def transitor_manager(current_location):
     if current_location == 'start_street_1':
         pass
 
-
 class Level(pygame.sprite.Sprite):
-    def __init__(self, image_path, collision_map, transitions, sprite_group):
-        self.trigger_zone = pygame.Rect(transitions[0])
+    def __init__(self, image, collision_coords, transitions, sprite_group):
+        self.collision_rect = pygame.Rect(collision_coords)
+        pygame.draw.rect(screen, 'BLACK', self.collision_rect)
+        pygame.display.update()
 
-        self.image = image_path
+        self.image = image
 
-        screen.blit(self.image, (0, -50))
         self.rect = self.image.get_rect()
         super().__init__()
+
+    def check_collision(self, coords):
+        if self.collision_rect.collidepoint(coords):
+            return True
+        return False
 
 
 list_of_levels = {
 
     'start_street_1': Level(pygame.image.load(os.path.join(assets_path, 'start_home.png')).convert_alpha(),
-                            ((500, 900, 100, 100),))
+                            (50, 100, 100000, 10000), 'change', 'change')
 }
 
 
@@ -241,11 +243,10 @@ def menu(screen):
     pass
 
 
-st = Level(pygame.image.load(os.path.join(assets_path, 'start_home.png')).convert_alpha(),
-           ((500, 900, 100, 100),))
+st = list_of_levels['start_street_1']
 ply = Player(300, 300, os.path.join(f'{os.curdir}/icons'))
-all_sprites.add(st)
-all_sprites.add(ply)
+first_scene_group.add(st)
+first_scene_group.add(ply)
 
 while True:
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
@@ -255,7 +256,7 @@ while True:
 
     while True:
 
-        all_sprites.draw(screen)
+        first_scene_group.draw(screen)
         pygame.display.flip()
 
         for event in pygame.event.get():
@@ -265,41 +266,44 @@ while True:
                 x1 -= 70
                 y1 -= 90
                 x, y = ply.get_coords()
+                if st.check_collision((x, y)):
+                    print('f')
+                    break
                 if x1 == x and y1 == y:
                     ply.standStraight()
-                    all_sprites.update()
-                    all_sprites.draw(screen)
+                    first_scene_group.update()
+                    first_scene_group.draw(screen)
                     pygame.display.flip()
                     break
                 elif x1 > x:
                     while x1 > x:
                         x, y = ply.get_coords()
                         ply.moveRight()
-                        all_sprites.update()
-                        all_sprites.draw(screen)
+                        first_scene_group.update()
+                        first_scene_group.draw(screen)
                         pygame.display.flip()
                         sleep(0.06)
                 elif x1 < x:
                     while x1 < x:
                         x, y = ply.get_coords()
                         ply.moveLeft()
-                        all_sprites.update()
-                        all_sprites.draw(screen)
+                        first_scene_group.update()
+                        first_scene_group.draw(screen)
                         pygame.display.flip()
                         sleep(0.06)
                 if y1 > y:
                     while y1 > y:
                         x, y = ply.get_coords()
                         ply.moveForward()
-                        all_sprites.update()
-                        all_sprites.draw(screen)
+                        first_scene_group.update()
+                        first_scene_group.draw(screen)
                         pygame.display.flip()
                         sleep(0.06)
                 elif y1 < y:
                     while y1 < y:
                         x, y = ply.get_coords()
                         ply.moveBack()
-                        all_sprites.update()
-                        all_sprites.draw(screen)
+                        first_scene_group.update()
+                        first_scene_group.draw(screen)
                         pygame.display.flip()
                         sleep(0.06)

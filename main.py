@@ -117,14 +117,15 @@ class Level(pygame.sprite.Sprite):
         self.collision_rect = pygame.Rect(collision_coords)
         pygame.draw.rect(screen, 'BLACK', self.collision_rect)
         pygame.display.update()
+        pygame.display.flip()
 
         self.image = image
 
         self.rect = self.image.get_rect()
         super().__init__()
 
-    def check_collision(self, coords):
-        if self.collision_rect.collidepoint(coords):
+    def check_collision(self, player):
+        if player.rect.colliderect(self.collision_rect):
             return True
         return False
 
@@ -132,7 +133,7 @@ class Level(pygame.sprite.Sprite):
 list_of_levels = {
 
     'start_street_1': Level(pygame.image.load(os.path.join(assets_path, 'start_home.png')).convert_alpha(),
-                            (50, 100, 100000, 10000), 'change', 'change')
+                            (0, 0, 100, 100), 'change', 'change')
 }
 
 
@@ -266,9 +267,9 @@ while True:
                 x1 -= 70
                 y1 -= 90
                 x, y = ply.get_coords()
-                if st.check_collision((x, y)):
-                    print('f')
-                    break
+                if st.check_collision(ply):
+                    ply.rect = (x, y)
+                    '''ПОЧТИ ДОДЕЛАЛ'''
                 if x1 == x and y1 == y:
                     ply.standStraight()
                     first_scene_group.update()

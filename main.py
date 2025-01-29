@@ -76,9 +76,6 @@ class Player(pygame.sprite.Sprite):
     def get_coords(self):
         return self.rect.x, self.rect.y
 
-    def check_transitions(self):
-        pass
-
     def update(self):
         self.current_frame = (self.current_frame + 1) % len(self.frames)
         self.image = self.frames[self.current_frame]
@@ -108,32 +105,63 @@ class Player(pygame.sprite.Sprite):
                        os.listdir(f'{os.curdir}/icons') if 'stand' in file]
 
 
-def transitor_manager(current_location):
-    if current_location == 'start_street_1':
-        pass
+def level_manager(level):
+    if level.level_name() == 'start_street_1':
+        return list_of_levels['start_street_2']
+
 
 class Level(pygame.sprite.Sprite):
-    def __init__(self, image, collision_coords, transitions, sprite_group):
-        self.collision_rect = pygame.Rect(collision_coords)
-        pygame.draw.rect(screen, 'BLACK', self.collision_rect)
+    def __init__(self, level_name, spawn_coords, image, collision_rects, transitions_rects, sprite_group):
+
+        self.collision_rects = []
+        self.transitions_rects = []
+        self.name = level_name
+
+        for i in collision_rects:
+            self.collision_rects.append(pygame.Rect(i))
+
+        for m in transitions_rects:
+            self.transitions_rects.append(pygame.Rect(m))
+
         pygame.display.update()
         pygame.display.flip()
+
+        self.spawn_coords = spawn_coords
 
         self.image = image
 
         self.rect = self.image.get_rect()
         super().__init__()
 
+    def check_transitions(self, player, level):
+        for v in self.transitions_rects:
+            if player.rect.colliderect(v):
+                return level_manager(self)
+            else:
+                return level
+
     def check_collision(self, player):
-        if player.rect.colliderect(self.collision_rect):
-            return True
-        return False
+        for j in self.collision_rects:
+            if player.rect.colliderect(j):
+                return True
+
+    def level_name(self):
+        return self.name
+
+    def return_spawn(self):
+        return self.spawn_coords
 
 
 list_of_levels = {
 
-    'start_street_1': Level(pygame.image.load(os.path.join(assets_path, 'start_home.png')).convert_alpha(),
-                            (0, 0, 100, 100), 'change', 'change')
+    'start_street_1': Level('start_street_1', (860, 910),
+                            pygame.image.load(os.path.join(assets_path, 'start_home.png')).convert_alpha(),
+                            [(0, 0, 2000, 840)], [(1873, 998, 1999, 1070)], 'change'),
+
+    'start_street_2': Level('start_street_2', (860, 910),
+                            pygame.image.load(os.path.join(assets_path, 'start_street.png')).convert_alpha(),
+                            [(0, 0, 1343, 533)], [(601, 524, 640, 539)], 'change')
+
 }
 
 
@@ -143,6 +171,8 @@ class Item(pygame.sprite.Sprite):
 
 # def sprite_separator():
 #     sheet = Image.open("assets/test_walk.png")
+
+
 #     count = 0
 #
 #     for x in range(4):
@@ -245,9 +275,9 @@ def menu(screen):
 
 
 st = list_of_levels['start_street_1']
-ply = Player(300, 300, os.path.join(f'{os.curdir}/icons'))
-first_scene_group.add(st)
-first_scene_group.add(ply)
+spawn_coords = st.spawn_coords
+x, y = spawn_coords
+ply = Player(x, y, os.path.join(f'{os.curdir}/icons'))
 
 while True:
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
@@ -256,6 +286,10 @@ while True:
             exit()
 
     while True:
+
+        st = st.check_transitions(ply, st)
+        first_scene_group.add(st)
+        first_scene_group.add(ply)
 
         first_scene_group.draw(screen)
         pygame.display.flip()
@@ -267,9 +301,6 @@ while True:
                 x1 -= 70
                 y1 -= 90
                 x, y = ply.get_coords()
-                if st.check_collision(ply):
-                    ply.rect = (x, y)
-                    '''ПОЧТИ ДОДЕЛАЛ'''
                 if x1 == x and y1 == y:
                     ply.standStraight()
                     first_scene_group.update()
@@ -279,6 +310,10 @@ while True:
                 elif x1 > x:
                     while x1 > x:
                         x, y = ply.get_coords()
+                        if st.check_collision(ply):
+                            ply.rect.x = x + 5
+                            ply.rect.y = y + 5
+                            break
                         ply.moveRight()
                         first_scene_group.update()
                         first_scene_group.draw(screen)
@@ -287,6 +322,10 @@ while True:
                 elif x1 < x:
                     while x1 < x:
                         x, y = ply.get_coords()
+                        if st.check_collision(ply):
+                            ply.rect.x = x + 5
+                            ply.rect.y = y + 5
+                            break
                         ply.moveLeft()
                         first_scene_group.update()
                         first_scene_group.draw(screen)
@@ -295,6 +334,10 @@ while True:
                 if y1 > y:
                     while y1 > y:
                         x, y = ply.get_coords()
+                        if st.check_collision(ply):
+                            ply.rect.x = x + 5
+                            ply.rect.y = y + 5
+                            break
                         ply.moveForward()
                         first_scene_group.update()
                         first_scene_group.draw(screen)
@@ -303,6 +346,10 @@ while True:
                 elif y1 < y:
                     while y1 < y:
                         x, y = ply.get_coords()
+                        if st.check_collision(ply):
+                            ply.rect.x = x + 5
+                            ply.rect.y = y + 5
+                            break
                         ply.moveBack()
                         first_scene_group.update()
                         first_scene_group.draw(screen)

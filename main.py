@@ -4,6 +4,8 @@ import pygame
 import os
 from PIL import Image
 
+flag = False
+
 if __name__ == '__main__':
     pygame.init()
     pygame.display.set_caption('Pink Panther: Old Friend')
@@ -105,7 +107,11 @@ class Player(pygame.sprite.Sprite):
                        os.listdir(f'{os.curdir}/icons') if 'stand' in file]
 
 
-def level_manager(level):
+def level_manager(level=None):
+    global flag
+    if flag is False:
+        flag = True
+        return list_of_levels['start_street_1']
     if level.level_name() == 'start_street_1':
         return list_of_levels['start_street_2']
 
@@ -136,9 +142,10 @@ class Level(pygame.sprite.Sprite):
     def check_transitions(self, player, level):
         for v in self.transitions_rects:
             if player.rect.colliderect(v):
-                return level_manager(self)
+                # return level_manager(self)
+                print('f')
             else:
-                return level
+                return False
 
     def check_collision(self, player):
         for j in self.collision_rects:
@@ -274,10 +281,14 @@ def menu(screen):
     pass
 
 
-st = list_of_levels['start_street_1']
-spawn_coords = st.spawn_coords
+current_map = level_manager()
+spawn_coords = current_map.spawn_coords
 x, y = spawn_coords
 ply = Player(x, y, os.path.join(f'{os.curdir}/icons'))
+current_map = list_of_levels['start_street_1']
+first_scene_group.add(current_map)
+first_scene_group.add(ply)
+
 
 while True:
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
@@ -286,10 +297,6 @@ while True:
             exit()
 
     while True:
-
-        st = st.check_transitions(ply, st)
-        first_scene_group.add(st)
-        first_scene_group.add(ply)
 
         first_scene_group.draw(screen)
         pygame.display.flip()
@@ -310,9 +317,12 @@ while True:
                 elif x1 > x:
                     while x1 > x:
                         x, y = ply.get_coords()
-                        if st.check_collision(ply):
+                        if current_map.check_collision(ply):
                             ply.rect.x = x + 5
                             ply.rect.y = y + 5
+                            break
+                        if current_map.check_transitions(ply, current_map):
+                            current_map = current_map.check_transitions(ply, current_map)
                             break
                         ply.moveRight()
                         first_scene_group.update()
@@ -322,9 +332,12 @@ while True:
                 elif x1 < x:
                     while x1 < x:
                         x, y = ply.get_coords()
-                        if st.check_collision(ply):
+                        if current_map.check_collision(ply):
                             ply.rect.x = x + 5
                             ply.rect.y = y + 5
+                            break
+                        if current_map.check_transitions(ply, current_map):
+                            current_map = current_map.check_transitions(ply, current_map)
                             break
                         ply.moveLeft()
                         first_scene_group.update()
@@ -334,9 +347,12 @@ while True:
                 if y1 > y:
                     while y1 > y:
                         x, y = ply.get_coords()
-                        if st.check_collision(ply):
+                        if current_map.check_collision(ply):
                             ply.rect.x = x + 5
                             ply.rect.y = y + 5
+                            break
+                        if current_map.check_transitions(ply, current_map):
+                            current_map = current_map.check_transitions(ply, current_map)
                             break
                         ply.moveForward()
                         first_scene_group.update()
@@ -346,9 +362,12 @@ while True:
                 elif y1 < y:
                     while y1 < y:
                         x, y = ply.get_coords()
-                        if st.check_collision(ply):
+                        if current_map.check_collision(ply):
                             ply.rect.x = x + 5
                             ply.rect.y = y + 5
+                            break
+                        if current_map.check_transitions(ply, current_map):
+                            current_map = current_map.check_transitions(ply, current_map)
                             break
                         ply.moveBack()
                         first_scene_group.update()

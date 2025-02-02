@@ -116,7 +116,7 @@ def level_manager(level=None):
         return list_of_levels['start_street_2']
 
 
-class Level(pygame.sprite.Sprite):
+class Level():
     def __init__(self, level_name, spawn_coords, image, collision_rects, transitions_rects, sprite_group):
 
         self.collision_rects = []
@@ -152,6 +152,9 @@ class Level(pygame.sprite.Sprite):
 
     def level_name(self):
         return self.name
+
+    def return_image(self):
+        return self.image
 
     def return_spawn(self):
         return self.spawn_coords
@@ -284,7 +287,6 @@ spawn_coords = current_map.spawn_coords
 x, y = spawn_coords
 ply = Player(x, y, os.path.join(f'{os.curdir}/icons'))
 current_map = list_of_levels['start_street_1']
-first_scene_group.add(current_map)
 first_scene_group.add(ply)
 
 
@@ -296,6 +298,7 @@ while True:
 
     while True:
 
+        screen.blit(current_map.return_image(), (0, 0))
         first_scene_group.draw(screen)
         pygame.display.flip()
 
@@ -321,13 +324,9 @@ while True:
                             break
                         if current_map.check_transitions(ply, current_map):
                             current_map = level_manager(current_map)
-                            ply = Player(x, y, os.path.join(f'{os.curdir}/icons'))
-                            first_scene_group.remove()
-                            first_scene_group.add(ply)
-                            first_scene_group.add(current_map)
-                            first_scene_group.draw(screen)
-                            pygame.display.flip()
+                            break
                         ply.moveRight()
+                        screen.blit(current_map.return_image(), (0, 0))
                         first_scene_group.update()
                         first_scene_group.draw(screen)
                         pygame.display.flip()
@@ -341,13 +340,9 @@ while True:
                             break
                         if current_map.check_transitions(ply, current_map):
                             current_map = level_manager(current_map)
-                            ply = Player(x, y, os.path.join(f'{os.curdir}/icons'))
-                            first_scene_group.remove()
-                            first_scene_group.add(ply)
-                            first_scene_group.add(current_map)
-                            first_scene_group.draw(screen)
-                            pygame.display.flip()
+                            break
                         ply.moveLeft()
+                        screen.blit(current_map.return_image(), (0, 0))
                         first_scene_group.update()
                         first_scene_group.draw(screen)
                         pygame.display.flip()
@@ -361,13 +356,9 @@ while True:
                             break
                         if current_map.check_transitions(ply, current_map):
                             current_map = level_manager(current_map)
-                            ply = Player(x, y, os.path.join(f'{os.curdir}/icons'))
-                            first_scene_group.remove()
-                            first_scene_group.add(ply)
-                            first_scene_group.add(current_map)
-                            first_scene_group.draw(screen)
-                            pygame.display.flip()
+                            break
                         ply.moveForward()
+                        screen.blit(current_map.return_image(), (0, 0))
                         first_scene_group.update()
                         first_scene_group.draw(screen)
                         pygame.display.flip()
@@ -381,16 +372,10 @@ while True:
                             break
                         if current_map.check_transitions(ply, current_map):
                             current_map = level_manager(current_map)
-                            ply = Player(x, y, os.path.join(f'{os.curdir}/icons'))
-                            first_scene_group.remove()
-                            first_scene_group.add(ply)
-                            first_scene_group.add(current_map)
-                            first_scene_group.draw(screen)
-                            pygame.display.flip()
+                            break
                         ply.moveBack()
+                        screen.blit(current_map.return_image(), (0, 0))
                         first_scene_group.update()
                         first_scene_group.draw(screen)
                         pygame.display.flip()
                         sleep(0.06)
-
-                    '''ПЕРЕДЕЛАТЬ ПОЛНОСТЬЮ КЛАСС'''

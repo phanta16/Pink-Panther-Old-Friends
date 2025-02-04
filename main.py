@@ -5,6 +5,7 @@ import os
 from PIL import Image
 
 flag = False
+scale = 1.0
 
 if __name__ == '__main__':
     pygame.init()
@@ -65,7 +66,7 @@ class Player(pygame.sprite.Sprite):
 
                 self.frames.append(frame)
 
-        self.image = self.frames[0]
+        self.image = pygame.transform.scale(self.frames[0], (150, 150))
         self.rect = self.image.get_rect()
 
         self.current_frame = 0
@@ -80,16 +81,23 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
         self.current_frame = (self.current_frame + 1) % len(self.frames)
-        self.image = self.frames[self.current_frame]
+        self.image = pygame.transform.scale(self.frames[self.current_frame], (150, 150))
+        self.image = self.scale_image(self.image, scale)
 
     def moveForward(self):
+        global scale
         self.frames = [pygame.image.load(os.path.join(f'{os.curdir}/icons', file)) for file in
                        os.listdir(f'{os.curdir}/icons') if 'forward' in file]
+        if scale <= 1.5:
+            scale += 0.01
         self.rect.y += 5
 
     def moveBack(self):
+        global scale
         self.frames = [pygame.image.load(os.path.join(f'{os.curdir}/icons', file)) for file in
                        os.listdir(f'{os.curdir}/icons') if 'back' in file]
+        if scale > 0.25:
+            scale -= 0.01
         self.rect.y -= 5
 
     def moveRight(self):
@@ -106,6 +114,9 @@ class Player(pygame.sprite.Sprite):
         self.frames = [pygame.image.load(os.path.join(f'{os.curdir}/icons', file)) for file in
                        os.listdir(f'{os.curdir}/icons') if 'stand' in file]
 
+    def scale_image(self, image, scale):
+        return pygame.transform.scale(image, (int(image.get_width() * scale), int(image.get_height() * scale)))
+
 
 def level_manager(level=None):
     global flag
@@ -114,9 +125,12 @@ def level_manager(level=None):
         return list_of_levels['start_street_1']
     if level.level_name() == 'start_street_1':
         return list_of_levels['start_street_2']
+    # elif level.level_name() == 'start_street_2':
+    #     return list_of_levels['mansion_1']
 
 
-class Level():
+class Level:
+
     def __init__(self, level_name, spawn_coords, image, collision_rects, transitions_rects, sprite_group):
 
         self.collision_rects = []
@@ -168,7 +182,24 @@ list_of_levels = {
 
     'start_street_2': Level('start_street_2', (860, 910),
                             pygame.image.load(os.path.join(assets_path, 'start_street.png')).convert_alpha(),
-                            [(0, 0, 1343, 533)], [], 'change')
+                            [(0, 0, 2000, 724), (3, 884, 839, 543), (2000, 799, 1084, 499)], [(923, 801, 963, 836)],
+                            'change'),
+
+    'mansion_1': Level('mansion_1', (860, 910),
+                       pygame.image.load(os.path.join(assets_path, 'mansion_1.png')).convert_alpha(),
+                       [(0, 0, 1343, 533)], [], 'change'),
+
+    'mansion_2': Level('mansion_2', (860, 910),
+                       pygame.image.load(os.path.join(assets_path, 'mansion_2.png')).convert_alpha(),
+                       [(0, 0, 2000, 840)], [(1873, 998, 1999, 1070)], 'change'),
+
+    'mansion_3': Level('mansion_3', (860, 910),
+                       pygame.image.load(os.path.join(assets_path, 'mansion_3.png')).convert_alpha(),
+                       [(0, 0, 1343, 533)], [], 'change'),
+
+    'mansion_4': Level('mansion_4', (860, 910),
+                       pygame.image.load(os.path.join(assets_path, 'mansion_4.png')).convert_alpha(),
+                       [(0, 0, 1343, 533)], [], 'change')
 
 }
 
@@ -289,7 +320,6 @@ ply = Player(x, y, os.path.join(f'{os.curdir}/icons'))
 current_map = list_of_levels['start_street_1']
 first_scene_group.add(ply)
 
-
 while True:
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     for event in pygame.event.get():
@@ -314,7 +344,6 @@ while True:
                     first_scene_group.update()
                     first_scene_group.draw(screen)
                     pygame.display.flip()
-                    break
                 elif x1 > x:
                     while x1 > x:
                         x, y = ply.get_coords()
@@ -324,7 +353,6 @@ while True:
                             break
                         if current_map.check_transitions(ply, current_map):
                             current_map = level_manager(current_map)
-                            break
                         ply.moveRight()
                         screen.blit(current_map.return_image(), (0, 0))
                         first_scene_group.update()
@@ -340,7 +368,6 @@ while True:
                             break
                         if current_map.check_transitions(ply, current_map):
                             current_map = level_manager(current_map)
-                            break
                         ply.moveLeft()
                         screen.blit(current_map.return_image(), (0, 0))
                         first_scene_group.update()
@@ -356,7 +383,6 @@ while True:
                             break
                         if current_map.check_transitions(ply, current_map):
                             current_map = level_manager(current_map)
-                            break
                         ply.moveForward()
                         screen.blit(current_map.return_image(), (0, 0))
                         first_scene_group.update()
@@ -372,7 +398,6 @@ while True:
                             break
                         if current_map.check_transitions(ply, current_map):
                             current_map = level_manager(current_map)
-                            break
                         ply.moveBack()
                         screen.blit(current_map.return_image(), (0, 0))
                         first_scene_group.update()

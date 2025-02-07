@@ -12,6 +12,7 @@ if __name__ == '__main__':
     pygame.display.set_caption('Pink Panther: Old Friend')
     os.chdir(f'{os.getcwd()}\\assets')
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    screen_rect = pygame.Rect((0, 0), screen.get_size())
     screen.fill('black')
     pygame.display.update()
     pygame.mixer.init()
@@ -73,8 +74,17 @@ class Player(pygame.sprite.Sprite):
         self.frame_rate = frame_rate
         self.clock = pygame.time.Clock()
 
+        self.rect.clamp_ip(screen_rect)
+
         self.rect.x = x
         self.rect.y = y
+
+    def check_borders(self):
+        if self.rect.x >= 2004:
+            return True
+        if self.rect.y >= 1080:
+            return True
+        return False
 
     def get_coords(self):
         return self.rect.x, self.rect.y
@@ -156,6 +166,8 @@ class Level:
     def check_transitions(self, player, level):
         for v in self.transitions_rects:
             if player.rect.colliderect(v):
+                print(player.get_coords())
+                print(v.center)
                 return True
             return False
 
@@ -178,11 +190,11 @@ list_of_levels = {
 
     'start_street_1': Level('start_street_1', (860, 910),
                             pygame.image.load(os.path.join(assets_path, 'start_home.png')).convert_alpha(),
-                            [(0, 0, 2000, 840)], [(1873, 998, 1999, 1070)], 'change'),
+                            [(0, 0, 2000, 840)], [(1892, 1010, 2000, 1080)], 'change'),
 
-    'start_street_2': Level('start_street_2', (860, 910),
+    'start_street_2': Level('start_street_2', (943, 900),
                             pygame.image.load(os.path.join(assets_path, 'start_street.png')).convert_alpha(),
-                            [(0, 0, 2000, 724), (3, 884, 839, 543), (2000, 799, 1084, 499)], [(923, 801, 963, 836)],
+                            [(0, 0, 2000, 724), (3, 884, 839, 543), (2000, 799, 1084, 499)], [(914, 760, 929, 773)],
                             'change'),
 
     'mansion_1': Level('mansion_1', (860, 910),
@@ -352,7 +364,12 @@ while True:
                             ply.rect.y = y + 5
                             break
                         if current_map.check_transitions(ply, current_map):
+                            pass
                             current_map = level_manager(current_map)
+                            current_map.transitions_rects = [(0, 0, 0, 0)]
+                            ply.rect.x = current_map.spawn_coords[0]
+                            ply.rect.y = current_map.spawn_coords[1]
+                            break
                         ply.moveRight()
                         screen.blit(current_map.return_image(), (0, 0))
                         first_scene_group.update()
@@ -368,6 +385,8 @@ while True:
                             break
                         if current_map.check_transitions(ply, current_map):
                             current_map = level_manager(current_map)
+                            ply.rect.x = current_map.spawn_coords[0]
+                            ply.rect.y = current_map.spawn_coords[1]
                         ply.moveLeft()
                         screen.blit(current_map.return_image(), (0, 0))
                         first_scene_group.update()
@@ -383,6 +402,8 @@ while True:
                             break
                         if current_map.check_transitions(ply, current_map):
                             current_map = level_manager(current_map)
+                            ply.rect.x = current_map.spawn_coords[0]
+                            ply.rect.y = current_map.spawn_coords[1]
                         ply.moveForward()
                         screen.blit(current_map.return_image(), (0, 0))
                         first_scene_group.update()
@@ -398,6 +419,8 @@ while True:
                             break
                         if current_map.check_transitions(ply, current_map):
                             current_map = level_manager(current_map)
+                            ply.rect.x = current_map.spawn_coords[0]
+                            ply.rect.y = current_map.spawn_coords[1]
                         ply.moveBack()
                         screen.blit(current_map.return_image(), (0, 0))
                         first_scene_group.update()

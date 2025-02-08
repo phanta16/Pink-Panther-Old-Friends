@@ -3,6 +3,7 @@ from time import sleep
 import pygame
 import os
 from PIL import Image
+import pickle
 
 flag = False
 scale = 1.0
@@ -18,7 +19,19 @@ if __name__ == '__main__':
     pygame.mixer.init()
     clock = pygame.time.Clock()
     intro_sprites = pygame.sprite.Group()
-    first_scene_group = pygame.sprite.Group()
+
+
+
+    street_1 = pygame.sprite.Group()
+    street_2 = pygame.sprite.Group()
+    mansion_1 = pygame.sprite.Group()
+    mansion_2 = pygame.sprite.Group()
+    mansion_3 = pygame.sprite.Group()
+    mansion_4 = pygame.sprite.Group()
+    mansion_5 = pygame.sprite.Group()
+    mansion_6 = pygame.sprite.Group()
+
+
     # intro(screen)
     # menu(screen)
 
@@ -57,8 +70,10 @@ class AnimatedSprite(pygame.sprite.Sprite):
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, x, y, image_folder, frame_rate=10):
+    def __init__(self, x, y, image_folder, scale=(150, 150)):
         super().__init__()
+
+        self.scale = scale
 
         self.frames = []
         for filename in sorted(os.listdir(image_folder)):
@@ -67,22 +82,21 @@ class Player(pygame.sprite.Sprite):
 
                 self.frames.append(frame)
 
-        self.image = pygame.transform.scale(self.frames[0], (150, 150))
+        self.image = pygame.transform.scale(self.frames[0], self.scale)
         self.rect = self.image.get_rect()
 
         self.current_frame = 0
-        self.frame_rate = frame_rate
         self.clock = pygame.time.Clock()
-
-        self.rect.clamp_ip(screen_rect)
 
         self.rect.x = x
         self.rect.y = y
 
+        self.rect.clamp_ip(screen_rect)
+
     def check_borders(self):
-        if self.rect.x >= 2004:
+        if self.rect.x < 0 or self.rect.x + self.scale[0] > screen_rect.width:
             return True
-        if self.rect.y >= 1080:
+        if self.rect.y < 0 or self.rect.y + self.scale[1] > screen_rect.height:
             return True
         return False
 
@@ -91,7 +105,7 @@ class Player(pygame.sprite.Sprite):
 
     def update(self):
         self.current_frame = (self.current_frame + 1) % len(self.frames)
-        self.image = pygame.transform.scale(self.frames[self.current_frame], (150, 150))
+        self.image = pygame.transform.scale(self.frames[self.current_frame], self.scale)
         self.image = self.scale_image(self.image, scale)
 
     def moveForward(self):
@@ -128,46 +142,55 @@ class Player(pygame.sprite.Sprite):
         return pygame.transform.scale(image, (int(image.get_width() * scale), int(image.get_height() * scale)))
 
 
-def level_manager(level=None):
+def level_manager(level, transi=None):
     global flag
-    if flag is False:
-        flag = True
-        return list_of_levels['start_street_1']
+    global current_map
     if level.level_name() == 'start_street_1':
-        return list_of_levels['start_street_2']
-    # elif level.level_name() == 'start_street_2':
-    #     return list_of_levels['mansion_1']
-
+        current_map = list_of_levels['start_street_2']
+        return
+    elif level.level_name() == 'start_street_2':
+        current_map = list_of_levels['mansion_1']
+        return
+    elif level.level_name() == 'mansion_1':
+        current_map = list_of_levels['mansion_2']
+        return
+    elif level.level_name() == 'mansion_2':
+        current_map = list_of_levels['mansion_3']
+        return
+    elif level.level_name() == 'mansion_3':
+        current_map = list_of_levels['mansion_4']
+        return
+    # elif level.level_name() == 'mansion_4':
+    #     current_map = list_of_levels['man']
+    #     return
 
 class Level:
 
     def __init__(self, level_name, spawn_coords, image, collision_rects, transitions_rects, sprite_group):
 
         self.collision_rects = []
-        self.transitions_rects = []
+        self.transitions_rects = transitions_rects
         self.name = level_name
+        self.list_of_rect = []
 
         for i in collision_rects:
             self.collision_rects.append(pygame.Rect(i))
 
         for m in transitions_rects:
-            self.transitions_rects.append(pygame.Rect(m))
+            self.list_of_rect.append(pygame.Rect(m))
+
+        self.image = image
+        self.rect = self.image.get_rect()
+        super().__init__()
 
         pygame.display.update()
         pygame.display.flip()
 
         self.spawn_coords = spawn_coords
 
-        self.image = image
-
-        self.rect = self.image.get_rect()
-        super().__init__()
-
     def check_transitions(self, player, level):
-        for v in self.transitions_rects:
+        for v in self.list_of_rect:
             if player.rect.colliderect(v):
-                print(player.get_coords())
-                print(v.center)
                 return True
             return False
 
@@ -185,6 +208,12 @@ class Level:
     def return_spawn(self):
         return self.spawn_coords
 
+all_groups = [
+
+    'Мама лама',
+
+
+]
 
 list_of_levels = {
 
@@ -194,7 +223,7 @@ list_of_levels = {
 
     'start_street_2': Level('start_street_2', (943, 900),
                             pygame.image.load(os.path.join(assets_path, 'start_street.png')).convert_alpha(),
-                            [(0, 0, 2000, 724), (3, 884, 839, 543), (2000, 799, 1084, 499)], [(914, 760, 929, 773)],
+                            [(0, 0, 2000, 724), (3, 884, 839, 543), (2000, 799, 1084, 499)], [(914, 760, 10, 10)],
                             'change'),
 
     'mansion_1': Level('mansion_1', (860, 910),
@@ -324,13 +353,11 @@ def intro(screen):
 def menu(screen):
     pass
 
-
-current_map = level_manager()
+current_map = list_of_levels['start_street_1']
 spawn_coords = current_map.spawn_coords
 x, y = spawn_coords
-ply = Player(x, y, os.path.join(f'{os.curdir}/icons'))
-current_map = list_of_levels['start_street_1']
-first_scene_group.add(ply)
+ply = Player(x, y, os.path.join(f'{os.curdir}/icons'), (180, 180))
+street_1.add(ply)
 
 while True:
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
@@ -341,7 +368,7 @@ while True:
     while True:
 
         screen.blit(current_map.return_image(), (0, 0))
-        first_scene_group.draw(screen)
+        street_1.draw(screen)
         pygame.display.flip()
 
         for event in pygame.event.get():
@@ -353,77 +380,92 @@ while True:
                 x, y = ply.get_coords()
                 if x1 == x and y1 == y:
                     ply.standStraight()
-                    first_scene_group.update()
-                    first_scene_group.draw(screen)
+                    street_1.update()
+                    street_1.draw(screen)
                     pygame.display.flip()
                 elif x1 > x:
                     while x1 > x:
                         x, y = ply.get_coords()
+                        if ply.check_borders():
+                            ply.rect.x = x - 5
+                            break
                         if current_map.check_collision(ply):
                             ply.rect.x = x + 5
                             ply.rect.y = y + 5
                             break
                         if current_map.check_transitions(ply, current_map):
                             pass
-                            current_map = level_manager(current_map)
-                            current_map.transitions_rects = [(0, 0, 0, 0)]
+                            level_manager(current_map)
                             ply.rect.x = current_map.spawn_coords[0]
                             ply.rect.y = current_map.spawn_coords[1]
+                            ply.standStraight()
                             break
                         ply.moveRight()
                         screen.blit(current_map.return_image(), (0, 0))
-                        first_scene_group.update()
-                        first_scene_group.draw(screen)
+                        street_1.update()
+                        street_1.draw(screen)
                         pygame.display.flip()
                         sleep(0.06)
                 elif x1 < x:
                     while x1 < x:
                         x, y = ply.get_coords()
+                        if ply.check_borders():
+                            ply.rect.x = x + 5
+                            break
                         if current_map.check_collision(ply):
                             ply.rect.x = x + 5
                             ply.rect.y = y + 5
                             break
                         if current_map.check_transitions(ply, current_map):
-                            current_map = level_manager(current_map)
                             ply.rect.x = current_map.spawn_coords[0]
                             ply.rect.y = current_map.spawn_coords[1]
+                            ply.standStraight()
+                            break
                         ply.moveLeft()
                         screen.blit(current_map.return_image(), (0, 0))
-                        first_scene_group.update()
-                        first_scene_group.draw(screen)
+                        street_1.update()
+                        street_1.draw(screen)
                         pygame.display.flip()
                         sleep(0.06)
                 if y1 > y:
                     while y1 > y:
                         x, y = ply.get_coords()
+                        if ply.check_borders():
+                            ply.rect.y -= 5
+                            break
                         if current_map.check_collision(ply):
                             ply.rect.x = x + 5
                             ply.rect.y = y + 5
                             break
                         if current_map.check_transitions(ply, current_map):
-                            current_map = level_manager(current_map)
                             ply.rect.x = current_map.spawn_coords[0]
                             ply.rect.y = current_map.spawn_coords[1]
+                            ply.standStraight()
+                            break
                         ply.moveForward()
                         screen.blit(current_map.return_image(), (0, 0))
-                        first_scene_group.update()
-                        first_scene_group.draw(screen)
+                        street_1.update()
+                        street_1.draw(screen)
                         pygame.display.flip()
                         sleep(0.06)
                 elif y1 < y:
                     while y1 < y:
                         x, y = ply.get_coords()
+                        if ply.check_borders():
+                            ply.rect.y = y + 5
+                            break
                         if current_map.check_collision(ply):
                             ply.rect.x = x + 5
                             ply.rect.y = y + 5
                             break
                         if current_map.check_transitions(ply, current_map):
-                            current_map = level_manager(current_map)
                             ply.rect.x = current_map.spawn_coords[0]
                             ply.rect.y = current_map.spawn_coords[1]
+                            ply.standStraight()
+                            break
                         ply.moveBack()
                         screen.blit(current_map.return_image(), (0, 0))
-                        first_scene_group.update()
-                        first_scene_group.draw(screen)
+                        street_1.update()
+                        street_1.draw(screen)
                         pygame.display.flip()
                         sleep(0.06)

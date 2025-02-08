@@ -8,32 +8,31 @@ import pickle
 flag = False
 scale = 1.0
 
-if __name__ == '__main__':
-    pygame.init()
-    pygame.display.set_caption('Pink Panther: Old Friend')
-    os.chdir(f'{os.getcwd()}\\assets')
-    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-    screen_rect = pygame.Rect((0, 0), screen.get_size())
-    screen.fill('black')
-    pygame.display.update()
-    pygame.mixer.init()
-    clock = pygame.time.Clock()
-    intro_sprites = pygame.sprite.Group()
+pygame.init()
+pygame.display.set_caption('Pink Panther: Old Friend')
+os.chdir(f'{os.getcwd()}\\assets')
+screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+screen_rect = pygame.Rect((0, 0), screen.get_size())
+screen.fill('black')
+pygame.display.update()
+pygame.mixer.init()
+clock = pygame.time.Clock()
+intro_sprites = pygame.sprite.Group()
+
+street_1 = pygame.sprite.Group()
+street_2 = pygame.sprite.Group()
+mansion_1 = pygame.sprite.Group()
+mansion_2 = pygame.sprite.Group()
+mansion_3 = pygame.sprite.Group()
+mansion_4 = pygame.sprite.Group()
+mansion_5 = pygame.sprite.Group()
+mansion_6 = pygame.sprite.Group()
 
 
 
-    street_1 = pygame.sprite.Group()
-    street_2 = pygame.sprite.Group()
-    mansion_1 = pygame.sprite.Group()
-    mansion_2 = pygame.sprite.Group()
-    mansion_3 = pygame.sprite.Group()
-    mansion_4 = pygame.sprite.Group()
-    mansion_5 = pygame.sprite.Group()
-    mansion_6 = pygame.sprite.Group()
 
-
-    # intro(screen)
-    # menu(screen)
+# intro(screen)
+# menu(screen)
 
 current_path = os.path.dirname(__file__)
 assets_path = os.path.join(current_path, 'assets')
@@ -141,6 +140,10 @@ class Player(pygame.sprite.Sprite):
     def scale_image(self, image, scale):
         return pygame.transform.scale(image, (int(image.get_width() * scale), int(image.get_height() * scale)))
 
+def sprite_groups_manager(group, list_of_sprites):
+    for i in list_of_sprites:
+        group.add(i)
+    return group
 
 def level_manager(level, transi=None):
     global flag
@@ -164,6 +167,7 @@ def level_manager(level, transi=None):
     #     current_map = list_of_levels['man']
     #     return
 
+
 class Level:
 
     def __init__(self, level_name, spawn_coords, image, collision_rects, transitions_rects, sprite_group):
@@ -172,6 +176,8 @@ class Level:
         self.transitions_rects = transitions_rects
         self.name = level_name
         self.list_of_rect = []
+
+        self.sprite_group = sprite_group
 
         for i in collision_rects:
             self.collision_rects.append(pygame.Rect(i))
@@ -187,6 +193,9 @@ class Level:
         pygame.display.flip()
 
         self.spawn_coords = spawn_coords
+
+    def return_sprite(self):
+        return self.sprite_group
 
     def check_transitions(self, player, level):
         for v in self.list_of_rect:
@@ -208,41 +217,65 @@ class Level:
     def return_spawn(self):
         return self.spawn_coords
 
+
+ply = Player(860, 910, os.path.join(f'{os.curdir}/icons'), (180, 180))
+
 all_groups = [
 
-    'Мама лама',
+    sprite_groups_manager(street_1, [ply, ]),
 
+    sprite_groups_manager(street_2, [ply, ]),
+
+    sprite_groups_manager(mansion_1, [ply, ]),
+
+    sprite_groups_manager(mansion_2, [ply, ]),
+
+    sprite_groups_manager(mansion_3, [ply, ]),
+
+    sprite_groups_manager(mansion_4, [ply, ]),
+
+    sprite_groups_manager(mansion_5, [ply, ]),
+
+    sprite_groups_manager(mansion_6, [ply, ]),
 
 ]
+
+current_map = Level('start_street_1', (860, 910),
+                            pygame.image.load(os.path.join(assets_path, 'start_home.png')).convert_alpha(),
+                            [(0, 0, 2000, 840)], [(1892, 1010, 2000, 1080)], all_groups[0])
+spawn_coords = current_map.spawn_coords
+x, y = spawn_coords
+
 
 list_of_levels = {
 
     'start_street_1': Level('start_street_1', (860, 910),
                             pygame.image.load(os.path.join(assets_path, 'start_home.png')).convert_alpha(),
-                            [(0, 0, 2000, 840)], [(1892, 1010, 2000, 1080)], 'change'),
+                            [(0, 0, 2000, 840)], [(1892, 1010, 2000, 1080)], all_groups[0]),
 
     'start_street_2': Level('start_street_2', (943, 900),
                             pygame.image.load(os.path.join(assets_path, 'start_street.png')).convert_alpha(),
                             [(0, 0, 2000, 724), (3, 884, 839, 543), (2000, 799, 1084, 499)], [(914, 760, 10, 10)],
-                            'change'),
+                            all_groups[1]),
 
     'mansion_1': Level('mansion_1', (860, 910),
                        pygame.image.load(os.path.join(assets_path, 'mansion_1.png')).convert_alpha(),
-                       [(0, 0, 1343, 533)], [], 'change'),
+                       [(0, 0, 1343, 533)], [], all_groups[2]),
 
     'mansion_2': Level('mansion_2', (860, 910),
                        pygame.image.load(os.path.join(assets_path, 'mansion_2.png')).convert_alpha(),
-                       [(0, 0, 2000, 840)], [(1873, 998, 1999, 1070)], 'change'),
+                       [(0, 0, 2000, 840)], [(1873, 998, 1999, 1070)], all_groups[3]),
 
     'mansion_3': Level('mansion_3', (860, 910),
                        pygame.image.load(os.path.join(assets_path, 'mansion_3.png')).convert_alpha(),
-                       [(0, 0, 1343, 533)], [], 'change'),
+                       [(0, 0, 1343, 533)], [], all_groups[4]),
 
     'mansion_4': Level('mansion_4', (860, 910),
                        pygame.image.load(os.path.join(assets_path, 'mansion_4.png')).convert_alpha(),
-                       [(0, 0, 1343, 533)], [], 'change')
+                       [(0, 0, 1343, 533)], [], all_groups[5])
 
 }
+
 
 
 class Item(pygame.sprite.Sprite):
@@ -353,12 +386,6 @@ def intro(screen):
 def menu(screen):
     pass
 
-current_map = list_of_levels['start_street_1']
-spawn_coords = current_map.spawn_coords
-x, y = spawn_coords
-ply = Player(x, y, os.path.join(f'{os.curdir}/icons'), (180, 180))
-street_1.add(ply)
-
 while True:
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     for event in pygame.event.get():
@@ -367,6 +394,7 @@ while True:
 
     while True:
 
+        street_1 = current_map.sprite_group
         screen.blit(current_map.return_image(), (0, 0))
         street_1.draw(screen)
         pygame.display.flip()
@@ -374,7 +402,8 @@ while True:
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 ply.standStraight()
-                x1, y1 = pygame.mouse.get_pos()
+                x1, y1 = (pygame.mouse.get_pos
+                          ())
                 x1 -= 70
                 y1 -= 90
                 x, y = ply.get_coords()
@@ -417,6 +446,7 @@ while True:
                             ply.rect.y = y + 5
                             break
                         if current_map.check_transitions(ply, current_map):
+                            level_manager(current_map)
                             ply.rect.x = current_map.spawn_coords[0]
                             ply.rect.y = current_map.spawn_coords[1]
                             ply.standStraight()
@@ -438,6 +468,7 @@ while True:
                             ply.rect.y = y + 5
                             break
                         if current_map.check_transitions(ply, current_map):
+                            level_manager(current_map)
                             ply.rect.x = current_map.spawn_coords[0]
                             ply.rect.y = current_map.spawn_coords[1]
                             ply.standStraight()
@@ -459,6 +490,7 @@ while True:
                             ply.rect.y = y + 5
                             break
                         if current_map.check_transitions(ply, current_map):
+                            level_manager(current_map)
                             ply.rect.x = current_map.spawn_coords[0]
                             ply.rect.y = current_map.spawn_coords[1]
                             ply.standStraight()

@@ -8,6 +8,7 @@ import pickle
 flag = False
 scale = 1.0
 
+
 pygame.init()
 pygame.display.set_caption('Pink Panther: Old Friend')
 os.chdir(f'{os.getcwd()}\\assets')
@@ -27,9 +28,6 @@ mansion_3 = pygame.sprite.Group()
 mansion_4 = pygame.sprite.Group()
 mansion_5 = pygame.sprite.Group()
 mansion_6 = pygame.sprite.Group()
-
-
-
 
 # intro(screen)
 # menu(screen)
@@ -74,6 +72,8 @@ class Player(pygame.sprite.Sprite):
 
         self.scale = scale
 
+        self.inventory = []
+
         self.frames = []
         for filename in sorted(os.listdir(image_folder)):
             if filename.endswith('.png'):
@@ -93,11 +93,7 @@ class Player(pygame.sprite.Sprite):
         self.rect.clamp_ip(screen_rect)
 
     def check_borders(self):
-        if self.rect.x < 0 or self.rect.x + self.scale[0] > screen_rect.width:
-            return True
-        if self.rect.y < 0 or self.rect.y + self.scale[1] > screen_rect.height:
-            return True
-        return False
+        pass
 
     def get_coords(self):
         return self.rect.x, self.rect.y
@@ -140,14 +136,22 @@ class Player(pygame.sprite.Sprite):
     def scale_image(self, image, scale):
         return pygame.transform.scale(image, (int(image.get_width() * scale), int(image.get_height() * scale)))
 
+    def add_item(self, item):
+        self.inventory.append(item)
+
+ply = Player(860, 910, os.path.join(f'{os.curdir}/icons'), (180, 180))
+
+
 def sprite_groups_manager(group, list_of_sprites):
     for i in list_of_sprites:
         group.add(i)
     return group
 
+
 def level_manager(level, transi=None):
     global flag
     global current_map
+    global ply
     if level.level_name() == 'start_street_1':
         current_map = list_of_levels['start_street_2']
         return
@@ -155,6 +159,7 @@ def level_manager(level, transi=None):
         current_map = list_of_levels['mansion_1']
         return
     elif level.level_name() == 'mansion_1':
+        ply.scale = (300, 300)
         current_map = list_of_levels['mansion_2']
         return
     elif level.level_name() == 'mansion_2':
@@ -168,9 +173,61 @@ def level_manager(level, transi=None):
     #     return
 
 
+class Item(pygame.sprite.Sprite):
+    def __init__(self, name, image):
+        super().__init__()
+
+        self.name = name
+        self.image = pygame.image.load(image)
+        image_rect = self.image.get_rect()
+
+    def get_name(self):
+        return self.name
+
+    def image_for_ui(self):
+        return self.image
+
+
+list_of_items = {
+
+    'Candle': Item('Свечка', os.path.join(assets_path, 'candle.png')),
+
+    'Key': Item('Ключ', os.path.join(assets_path, 'key.png')),
+}
+
+
+class InventoryUI:
+    def __init__(self, items=None, width=80, height=700, scale=(50, 50), enabled=False):
+        self.width = width
+        self.height = height
+        self.items = items
+        self.scale = scale
+        self.font = pygame.font.Font(None, 36)
+        self.rect = pygame.Rect(50, 50, height, width)
+
+        self.enabled = enabled
+
+    def movement_collision(self, coords):
+        if self.rect.collidepoint(coords):
+            return True
+        return False
+
+    def draw(self, screen):
+
+        if self.enabled is False:
+            return
+
+        pygame.draw.rect(screen, (121, 85, 61), self.rect, border_radius=20)
+
+        if self.items is not None:
+            for i, item in enumerate(self.items):
+                item_rect = pygame.Rect(38 + i * (self.scale[0] + 30), 40, *self.scale)
+                screen.blit(pygame.transform.scale(item.image_for_ui(), (90, 90)), item_rect)
+
+
 class Level:
 
-    def __init__(self, level_name, spawn_coords, image, collision_rects, transitions_rects, sprite_group):
+    def __init__(self, level_name, spawn_coords, image, collision_rects, transitions_rects, sprite_group, music=None, foot_step=None):
 
         self.collision_rects = []
         self.transitions_rects = transitions_rects
@@ -217,9 +274,6 @@ class Level:
     def return_spawn(self):
         return self.spawn_coords
 
-
-ply = Player(860, 910, os.path.join(f'{os.curdir}/icons'), (180, 180))
-
 all_groups = [
 
     sprite_groups_manager(street_1, [ply, ]),
@@ -239,13 +293,14 @@ all_groups = [
     sprite_groups_manager(mansion_6, [ply, ]),
 
 ]
+'''ПОМЕНЯТЬ'''
+interface = InventoryUI([list_of_items['Candle'], list_of_items['Key']])
 
 current_map = Level('start_street_1', (860, 910),
-                            pygame.image.load(os.path.join(assets_path, 'start_home.png')).convert_alpha(),
-                            [(0, 0, 2000, 840)], [(1892, 1010, 2000, 1080)], all_groups[0])
+                    pygame.image.load(os.path.join(assets_path, 'start_home.png')).convert_alpha(),
+                    [(0, 0, 2000, 840)], [(1892, 1010, 2000, 1080)], all_groups[0])
 spawn_coords = current_map.spawn_coords
 x, y = spawn_coords
-
 
 list_of_levels = {
 
@@ -260,7 +315,7 @@ list_of_levels = {
 
     'mansion_1': Level('mansion_1', (860, 910),
                        pygame.image.load(os.path.join(assets_path, 'mansion_1.png')).convert_alpha(),
-                       [(0, 0, 1343, 533)], [], all_groups[2]),
+                       [(0, 0, 1343, 533)], [(210, 747, 50, 50)], all_groups[2]),
 
     'mansion_2': Level('mansion_2', (860, 910),
                        pygame.image.load(os.path.join(assets_path, 'mansion_2.png')).convert_alpha(),
@@ -277,9 +332,19 @@ list_of_levels = {
 }
 
 
+def handle_click(mouse_pos, current_group):
+    for sprite in current_group:  # Здесь street_1 — это группа спрайтов на текущем уровне
+        if isinstance(sprite, ClickableSprite):  # Проверяем, что это клик по спрайту
+            if sprite.is_clicked(mouse_pos):
+                minigame_manager()
+                return
 
-class Item(pygame.sprite.Sprite):
-    pass
+
+def minigame_manager():
+    # Код для начала мини-игры
+    print("Мини-игра началась!")
+    # Допустим, это окно с каким-то действием
+    # Пример: pygame.display.set_mode((500, 500)) для нового окна
 
 
 # def sprite_separator():
@@ -386,7 +451,9 @@ def intro(screen):
 def menu(screen):
     pass
 
+
 while True:
+    event = pygame.event.poll()
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -397,10 +464,11 @@ while True:
         street_1 = current_map.sprite_group
         screen.blit(current_map.return_image(), (0, 0))
         street_1.draw(screen)
+        interface.draw(screen)
         pygame.display.flip()
 
         for event in pygame.event.get():
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 ply.standStraight()
                 x1, y1 = (pygame.mouse.get_pos
                           ())
@@ -411,6 +479,7 @@ while True:
                     ply.standStraight()
                     street_1.update()
                     street_1.draw(screen)
+                    interface.draw(screen)
                     pygame.display.flip()
                 elif x1 > x:
                     while x1 > x:
@@ -423,16 +492,18 @@ while True:
                             ply.rect.y = y + 5
                             break
                         if current_map.check_transitions(ply, current_map):
-                            pass
                             level_manager(current_map)
                             ply.rect.x = current_map.spawn_coords[0]
                             ply.rect.y = current_map.spawn_coords[1]
                             ply.standStraight()
                             break
+                        if interface.movement_collision((x, y)):
+                            break
                         ply.moveRight()
                         screen.blit(current_map.return_image(), (0, 0))
                         street_1.update()
                         street_1.draw(screen)
+                        interface.draw(screen)
                         pygame.display.flip()
                         sleep(0.06)
                 elif x1 < x:
@@ -451,10 +522,13 @@ while True:
                             ply.rect.y = current_map.spawn_coords[1]
                             ply.standStraight()
                             break
+                        if interface.movement_collision((x, y)):
+                            break
                         ply.moveLeft()
                         screen.blit(current_map.return_image(), (0, 0))
                         street_1.update()
                         street_1.draw(screen)
+                        interface.draw(screen)
                         pygame.display.flip()
                         sleep(0.06)
                 if y1 > y:
@@ -473,10 +547,13 @@ while True:
                             ply.rect.y = current_map.spawn_coords[1]
                             ply.standStraight()
                             break
+                        if interface.movement_collision((x, y)):
+                            break
                         ply.moveForward()
                         screen.blit(current_map.return_image(), (0, 0))
                         street_1.update()
                         street_1.draw(screen)
+                        interface.draw(screen)
                         pygame.display.flip()
                         sleep(0.06)
                 elif y1 < y:
@@ -495,9 +572,18 @@ while True:
                             ply.rect.y = current_map.spawn_coords[1]
                             ply.standStraight()
                             break
+                        if interface.movement_collision((x, y)):
+                            break
                         ply.moveBack()
                         screen.blit(current_map.return_image(), (0, 0))
                         street_1.update()
                         street_1.draw(screen)
+                        interface.draw(screen)
                         pygame.display.flip()
                         sleep(0.06)
+            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
+                if interface.enabled is True:
+                    interface.enabled = False
+                elif interface.enabled is False:
+                    interface.enabled = True
+

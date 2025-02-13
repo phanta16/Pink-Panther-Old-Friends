@@ -1,27 +1,20 @@
 from time import sleep
 
-import random
 import pygame
 import os
 from PIL import Image
-import pickle
 
 flag_ = False
 flag_2 = False
 flag = False
 scale = 1.0
 
-# font = pygame.font.SysFont("Arial", 36, False, False)
 
 music_tracks = {
     "start_street_1": 'sound_for_start.mp3',
     "mansion_1": "sound_for_mansion.mp3",
 }
 
-# list_of_texts = {
-#
-#     'text_1': font.render("Странно . . Кто оставил эти следы ?", True, 'YELLOW')
-# }
 
 def intro(screen):
     while True:
@@ -93,17 +86,26 @@ def intro(screen):
             screen.fill('BLACK')
 
         sleep(5)
+
         intro_sprites.empty()
 
-        sleep(1)
-
         letter = pygame.sprite.Sprite(intro_sprites)
-        letter.image = pygame.image.load(os.path.join(assets_path, 'panther_logo.png')).convert_alpha()
+        letter.image = pygame.image.load(os.path.join(assets_path, 'letter.png')).convert_alpha()
         letter.rect = logo.image.get_rect()
-        letter.rect.x = 890
-        letter.rect.y = 270
+        letter.rect.x = 130
+        letter.rect.y = 145
 
-        sleep(10)
+        intro_sprites.update()
+        intro_sprites.draw(screen)
+        pygame.display.update()
+
+        pygame.mixer.music.load(os.path.join(assets_path, 'start_bebe.mp3'))
+        pygame.mixer.music.play(loops=1, start=0.1)
+
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
+
+        screen.fill('BLACK')
 
         break
     return
@@ -130,7 +132,6 @@ mansion_5 = pygame.sprite.Group()
 mansion_6 = pygame.sprite.Group()
 
 intro(screen)
-# menu(screen)
 
 
 
@@ -247,7 +248,7 @@ def music_manager(level):
         return
 
 
-def level_manager(level, transi=None):
+def level_manager(level):
     global flag
     global current_map
     global ply
@@ -266,6 +267,7 @@ def level_manager(level, transi=None):
     elif level.level_name() == 'mansion_3' and ply.is_equiped(list_of_items['Key']):
         current_map = list_of_levels['mansion_4']
         return
+    return
 
 
 class Item(pygame.sprite.Sprite):
@@ -449,22 +451,27 @@ def sprite_separator():
         new_image.save("assets/icons/{}.png".format(v))
 
 
-def final(screen, level):
+def final(screen):
 
-    mesenev = pygame.image.load(os.path.join(assets_path, 'Mesenev.png'))
-    screen.blit(mesenev, (200, 300))
-    pygame.display.flip()
-
-    pygame.mixer.music.load(os.path.join(assets_path, 'my.wav'))
+    pygame.mixer.music.load(os.path.join(assets_path, 'my.mp3'))
     pygame.mixer.music.play(loops=1, start=0.1)
 
     while pygame.mixer.music.get_busy():
         pygame.time.Clock().tick(10)
 
+    sleep(3)
 
+    mesenev = pygame.image.load(os.path.join(assets_path, 'screamer.png'))
+    screen.blit(mesenev, (0, 0))
+    pygame.display.flip()
 
+    pygame.mixer.music.load(os.path.join(assets_path, 'screamer.mp3'))
+    pygame.mixer.music.play(loops=1, start=0.1)
 
-final(screen, list_of_levels['mansion_4'])
+    while pygame.mixer.music.get_busy():
+        pygame.time.Clock().tick(10)
+
+    exit()
 
 while True:
     event = pygame.event.poll()
@@ -612,6 +619,13 @@ while True:
                         interface.draw(screen)
                         pygame.display.flip()
                         sleep(0.06)
+                    if current_map == list_of_levels['mansion_4']:
+                        screen.blit(current_map.return_image(), (0, 0))
+                        cur_group.update()
+                        cur_group.draw(screen)
+                        interface.draw(screen)
+                        pygame.display.flip()
+                        final(screen)
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3:
                 if interface.enabled is True:
                     interface.enabled = False

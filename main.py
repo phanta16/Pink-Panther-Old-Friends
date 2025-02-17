@@ -9,7 +9,6 @@ flag_2 = False
 flag = False
 scale = 1.0
 
-
 music_tracks = {
     "start_street_1": 'sound_for_start.mp3',
     "mansion_1": "sound_for_mansion.mp3",
@@ -495,7 +494,6 @@ def final(screen):
         pygame.time.Clock().tick(10)
 
     exit()
-current_map = list_of_levels['mansion_1']
 
 while True:
     event = pygame.event.poll()

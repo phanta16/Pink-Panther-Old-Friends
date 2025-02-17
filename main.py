@@ -133,7 +133,15 @@ mansion_6 = pygame.sprite.Group()
 
 intro(screen)
 
+pygame.mixer.init()
 
+object_bring = pygame.mixer.Sound('get_item.mp3')
+door_open = pygame.mixer.Sound('open_door.mp3')
+melting = pygame.mixer.Sound('vox_burn.mp3')
+water_mansion = pygame.mixer.Sound('water_sound.mp3')
+crowbar_get = pygame.mixer.Sound('water_sound.mp3')
+wooden_door = pygame.mixer.Sound('wooden_door.mp3')
+closed_door = pygame.mixer.Sound('closed.mp3')
 
 current_path = os.path.dirname(__file__)
 assets_path = os.path.join(current_path, 'assets')
@@ -258,15 +266,24 @@ def level_manager(level):
     elif level.level_name() == 'start_street_2':
         current_map = list_of_levels['mansion_1']
         return
-    elif level.level_name() == 'mansion_1':
+    elif level.level_name() == 'mansion_1' and ply.is_equiped(list_of_items['Crowbar']):
         current_map = list_of_levels['mansion_2']
+        wooden_door.play()
+        return
+    elif level.level_name() == 'mansion_1' and not ply.is_equiped(list_of_items['Crowbar']):
+        closed_door.play()
         return
     elif level.level_name() == 'mansion_2':
         current_map = list_of_levels['mansion_3']
+        door_open.play()
         return
     elif level.level_name() == 'mansion_3' and ply.is_equiped(list_of_items['Key']):
         current_map = list_of_levels['mansion_4']
+        door_open.play()
         return
+    else:
+        ply.rect.x -= 5
+        ply.rect.y -= 5
     return
 
 
@@ -302,6 +319,12 @@ list_of_items = {
     'Vox': Item('Воск', os.path.join(assets_path, 'vox.png'), (1690, 675)),
 
     'Stove': Item('Печь', os.path.join(assets_path, 'stove.png'), (155, 670)),
+
+    'Water': Item('Печь', os.path.join(assets_path, 'stove.png'), (1395, 955)),
+
+    'Crowbar': Item('Монтировка', os.path.join(assets_path, 'screw.png'), (100, 500)),
+
+    'Lamp': Item('Лампа', os.path.join(assets_path, 'lighter.png'), (1340, 950)),
 
 }
 
@@ -396,7 +419,7 @@ all_groups = [
 
     sprite_groups_manager(street_2, [ply, ]),
 
-    sprite_groups_manager(mansion_1, [ply, ]),
+    sprite_groups_manager(mansion_1, [ply, list_of_items['Water'], list_of_items['Lamp']]),
 
     sprite_groups_manager(mansion_2, [ply, ]),
 
@@ -472,6 +495,7 @@ def final(screen):
         pygame.time.Clock().tick(10)
 
     exit()
+current_map = list_of_levels['mansion_1']
 
 while True:
     event = pygame.event.poll()
@@ -498,14 +522,24 @@ while True:
                 y1 -= 90
                 x, y = ply.get_coords()
                 ply.scale = current_map.return_scale()
+                if current_map == list_of_levels['mansion_1']:
+                    if list_of_items['Water'].rect.collidepoint(pygame.mouse.get_pos()) and not ply.is_equiped(
+                            list_of_items['Crowbar']):
+                        water_mansion.play()
+                        sleep(2)
+                        crowbar_get.play()
+                        ply.add_item(list_of_items['Crowbar'])
+                        break
                 if current_map == list_of_levels['mansion_3']:
                     if list_of_items['Vox'].rect.collidepoint(pygame.mouse.get_pos()):
+                        object_bring.play()
                         ply.add_item(list_of_items['Vox'])
                         list_of_items['Vox'].kill()
                         break
                     if list_of_items['Stove'].rect.collidepoint(pygame.mouse.get_pos()) and ply.is_equiped(
                             list_of_items['Vox']):
                         ply.remove_item(list_of_items['Vox'])
+                        melting.play()
                         ply.add_item(list_of_items['Key'])
                         break
                     pass
